@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+
+{% block content %}
+{% for i in sites.keys() %}
+<h3>{{ i }}</h3>
+{% for j in sites[i].keys() %}
+<a href="{{ sites[i][j] }}">{{j}}</a></br>
+{% endfor %}
+{% endfor %}
+{% endblock %}

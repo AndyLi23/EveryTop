@@ -31,16 +31,18 @@ def get_top(site, n=10):
                     j.find_parent(href=True)['href']
     elif site == "New York Times":
         for j in soup.find_all("span", attrs={"class": None}):
-            if j.find_parent(href=True) and "https://www.nytimes.com" not in j.find_parent(href=True)['href']:
+            if j.find_parent(href=True) and "nytimes.com" not in j.find_parent(href=True)['href']:
                 top[j.get_text()] = "https://www.nytimes.com" + \
                     j.find_parent(href=True)['href']
         for j in soup.find_all(attrs={"class": websites[site][1][0]}):
-            top[j.get_text()] = "https://www.nytimes.com" + \
-                j.find_parent(href=True)['href']
+            if j.find_parent(href=True) and "nytimes.com" not in j.find_parent(href=True)['href']:
+                top[j.get_text()] = "https://www.nytimes.com" + \
+                    j.find_parent(href=True)['href']
     elif site == "NBC News":
         for i in websites[site][1]:
             for j in soup.find_all(attrs={"class": i}):
-                top[j.get_text()] = j.find_parent(href=True)['href']
+                if j.find_parent(href=True):
+                    top[j.get_text()] = j.find_parent(href=True)['href']
     elif site == "Washington Post":
         for j in soup.find_all(attrs={"data-pb-placeholder": "Write headline here"}, href=True):
             top[j.get_text().strip()] = j['href']
@@ -49,7 +51,8 @@ def get_top(site, n=10):
         for i in range(len(l)):
             try:
                 int(l[i].get_text())
-                top[l[i-1].get_text()] = l[i-1]['href']
+                if l[i-1].get_text():
+                    top[l[i-1].get_text()] = l[i-1]['href']
             except:
                 pass
     elif site == "The Atlantic":
@@ -71,4 +74,4 @@ def get_top(site, n=10):
     return ans
 
 
-print(get_top("The Onion"))
+#print(get_top("NBC News"))
