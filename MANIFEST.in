@@ -1,0 +1,4 @@
+include everytop/schema.sql
+graft everytop/static
+graft everytop/templates
+global-exclude *.pyc
