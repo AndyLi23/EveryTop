@@ -12,27 +12,34 @@ bp = Blueprint('home', __name__)
 def index():
     db = get_db()
     info = db.execute(
-        'SELECT s.id, user_id, sites'
-        ' FROM sites s JOIN user u ON s.user_id = u.id'
-    ).fetchall()
+        'SELECT * FROM user WHERE id = ?', (g.user['id'],)
+    ).fetchone()
     sites = {}
-    for i in websites.keys():
-        sites[i] = get_top(i)
-    return render_template('home/index.html', info=info, sites=sites)
+    for i in range(len(websites.keys())):
+        if info['sites'][i] == '1':
+            sites[websites.keys()[i]] = get_top(websites.keys()[i])
+    print(info['sites'])
+    return render_template('home/index.html', sites=sites)
 
 
 @bp.route('/new', methods=('GET', 'POST'))
 @login_required
 def new():
     if request.method == 'POST':
-        t = [0] * len(websites)
+        t = ['0'] * len(websites)
         cur = 0
         for i in websites.keys():
             try:
                 request.form[i]
-                t[cur] = 1
+                t[cur] = '1'
             except:
                 pass
             cur += 1
+        db = get_db()
+        print(t)
+        db.execute(
+            'UPDATE user SET sites = ? WHERE id = ?',
+            ("".join(t), g.user['id'])
+        )
         return redirect(url_for('index'))
     return render_template('home/new.html', sites=websites.keys())

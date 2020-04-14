@@ -2,6 +2,7 @@ import functools
 from flask import Blueprint, flash, g, redirect, render_template, request, session, url_for
 from werkzeug.security import check_password_hash, generate_password_hash
 from everytop.db import get_db
+from everytop.get_top import websites
 
 bp = Blueprint('auth', __name__, url_prefix="/auth")
 
@@ -25,8 +26,9 @@ def register():
 
         if error is None:
             db.execute(
-                'INSERT INTO user (username, password) VALUES (?, ?)',
-                (username, generate_password_hash(password))
+                'INSERT INTO user (username, password, sites) VALUES (?, ?, ?)',
+                (username, generate_password_hash(
+                    password), "0"*len(websites.keys()))
             )
             db.commit()
             return redirect(url_for('auth.login'))
