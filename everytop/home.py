@@ -8,23 +8,40 @@ bp = Blueprint('home', __name__)
 
 
 @bp.route('/')
-@login_required
 def index():
-    db = get_db()
-    info = db.execute(
-        'SELECT * FROM user WHERE id = ?', (g.user['id'],)
-    ).fetchone()
-    sites = {}
-    for i in range(len(websites.keys())):
-        if info['sites'][i] == '1':
-            sites[websites.keys()[i]] = get_top(websites.keys()[i])
-    print(info['sites'])
-    return render_template('home/index.html', sites=sites)
+    if g.user:
+        db = get_db()
+        info = db.execute(
+            'SELECT * FROM user WHERE id = ?', (g.user['id'],)
+        ).fetchone()
+        s = {}
+        for i in range(len(websites.keys())):
+            if i < len(info['sites']) and info['sites'][i] == '1':
+                s[list(websites.keys())[i]] = get_top(list(websites.keys())[i])
+        return render_template('home/index.html', sites=s)
+    else:
+        sites = {}
+        for i in websites.keys():
+            sites[i] = get_top(i)
+        return render_template('home/index.html', sites=sites)
 
 
 @bp.route('/new', methods=('GET', 'POST'))
 @login_required
 def new():
+    if g.user:
+        db = get_db()
+        info = db.execute(
+            'SELECT * FROM user WHERE id = ?', (g.user['id'],)
+        ).fetchone()
+        s, u = {}, {}
+        for i in range(len(websites.keys())):
+            if i < len(info['sites']) and info['sites'][i] == '1':
+                s[list(websites.keys())[i]] = get_top(list(websites.keys())[i])
+            else:
+                u[list(websites.keys())[i]] = get_top(list(websites.keys())[i])
+    else:
+        s, u = websites, {}
     if request.method == 'POST':
         t = ['0'] * len(websites)
         cur = 0
@@ -36,10 +53,25 @@ def new():
                 pass
             cur += 1
         db = get_db()
-        print(t)
         db.execute(
             'UPDATE user SET sites = ? WHERE id = ?',
             ("".join(t), g.user['id'])
         )
+        db.commit()
         return redirect(url_for('index'))
-    return render_template('home/new.html', sites=websites.keys())
+    return render_template('home/new.html', s=s, u=u)
+
+
+@bp.route('/reorder', methods=('GET', 'POST'))
+@login_required
+def reorder():
+    if g.user:
+        db = get_db()
+        info = db.execute(
+            'SELECT * FROM user WHERE id = ?', (g.user['id'],)
+        ).fetchone()
+        s = []
+        for i in range(len(websites.keys())):
+            if i < len(info['sites']) and info['sites'][i] == '1':
+                s.append(list(websites.keys())[i])
+    return render_template('home/reorder.html', sites=s)

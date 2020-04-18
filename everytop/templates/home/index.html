@@ -1,10 +1,16 @@
 {% extends 'base.html' %}
 
+{% block header %}
+<h1>{% block title %}Home{% endblock %}</h1>
+<a class="action" href="{{ url_for('home.index') }}">Reload</a>
+<a class="action" href="{{ url_for('home.new') }}">Edit Following</a>
+{% endblock %}
+
 {% block content %}
 {% for i in sites.keys() %}
 <h3>{{ i }}</h3>
 {% for j in sites[i].keys() %}
-<a href="{{ sites[i][j] }}">{{j}}</a></br>
+<a href="{{ sites[i][j] }}" target="_blank">{{j}}</a></br>
 {% endfor %}
 {% endfor %}
 {% endblock %}

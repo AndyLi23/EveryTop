@@ -11,7 +11,14 @@ websites = {
     "Wall Street Journal": ["https://www.wsj.com/", []],
     "The Atlantic": ["https://www.theatlantic.com/most-popular/", ["hed"]],
     "ABC News": ["https://abcnews.go.com/", []],
-    "The Onion": ["https://www.theonion.com/", ["sc-1qoge05-0 eoIfRA"]]
+    "The Onion": ["https://www.theonion.com/", ["sc-1qoge05-0 eoIfRA"]],
+    "Fox News": ["https://www.foxnews.com/", ["title title-color-default"]],
+    "BBC News": ["https://www.bbc.com/news", ["gs-c-promo-heading__title gel-paragon-bold nw-o-link-split__text", "gs-c-promo-heading__title gel-pica-bold nw-o-link-split__text"]],
+    "POLITICO": ["https://www.politico.com/", ["js-tealium-tracking"]],
+    "NPR News": ["https://www.npr.org/", ["title"]],
+    "Reuters": ["https://www.reuters.com/", ["story-title"]],
+    "Associated Press": ["https://apnews.com/", []],
+    "CBS News": ["https://www.cbsnews.com/", ["item__hed"]]
 }
 
 
@@ -29,6 +36,11 @@ def get_top(site, n=10):
             for j in soup.find_all(attrs={"class": i}):
                 top[j.get_text()] = "https://cnn.com" + \
                     j.find_parent(href=True)['href']
+    elif site == "BBC News":
+        for i in websites[site][1]:
+            for j in soup.find_all(attrs={"class": i}):
+                top[j.get_text()] = "https://www.bbc.com" + \
+                    j.find_parent(href=True)['href']
     elif site == "New York Times":
         for j in soup.find_all("span", attrs={"class": None}):
             if j.find_parent(href=True) and "nytimes.com" not in j.find_parent(href=True)['href']:
@@ -38,7 +50,7 @@ def get_top(site, n=10):
             if j.find_parent(href=True) and "nytimes.com" not in j.find_parent(href=True)['href']:
                 top[j.get_text()] = "https://www.nytimes.com" + \
                     j.find_parent(href=True)['href']
-    elif site == "NBC News":
+    elif site == "NBC News" or site == "NPR News":
         for i in websites[site][1]:
             for j in soup.find_all(attrs={"class": i}):
                 if j.find_parent(href=True):
@@ -47,14 +59,9 @@ def get_top(site, n=10):
         for j in soup.find_all(attrs={"data-pb-placeholder": "Write headline here"}, href=True):
             top[j.get_text().strip()] = j['href']
     elif site == "Wall Street Journal":
-        l = soup.find_all("a", href=True)
-        for i in range(len(l)):
-            try:
-                int(l[i].get_text())
-                if l[i-1].get_text():
-                    top[l[i-1].get_text()] = l[i-1]['href']
-            except:
-                pass
+        for i in soup.find_all("a", href=True):
+            if "articles" in i['href'].split("/") and len(i.get_text().split(" ")) > 4:
+                top[i.get_text()] = i['href']
     elif site == "The Atlantic":
         for i in websites[site][1]:
             for j in soup.find_all(attrs={"class": i}):
@@ -66,6 +73,22 @@ def get_top(site, n=10):
     elif site == "The Onion":
         for j in soup.find_all(attrs={"class": websites[site][1][0]}):
             top[j.get_text()] = j.find_parent(href=True)['href']
+    elif site == "Fox News" or site == 'Reuters':
+        for j in soup.find_all(attrs={"class": websites[site][1][0]}):
+            if j.find(href=True):
+                top[j.get_text()] = j.find(href=True)['href']
+    elif site == "POLITICO":
+        for j in soup.find_all(attrs={"class": websites[site][1][0]}, href=True):
+            if len(j.get_text().split(" ")) > 3:
+                top[j.get_text()] = j['href']
+    elif site == "Associated Press":
+        for j in soup.find_all("a", attrs={"data-key": "related-story-link"}, href=True):
+            top[j.get_text().split("By")[0]] = j['href']
+    elif site == "CBS News":
+        for j in soup.find_all(attrs={"class": websites[site][1][0]}):
+            if j.find_parent(href=True):
+                if len(j.get_text().strip().split(" ")) > 3:
+                    top[j.get_text()] = j.find_parent(href=True)['href']
     ans = {}
     k = list(top.keys())
     for i in range(n):

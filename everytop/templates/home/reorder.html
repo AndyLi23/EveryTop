@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+
+{% block header %}
+<h1>{% block title %}Reorder{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+<form method="post">
+    {% for i in sites %}
+    <select>
+        <option>{{ i }}</option>
+        {% for j in sites %}
+        {% if j != i %}
+        <option>{{ j }}</option>
+        {% endif %}
+        {% endfor %}
+    </select>
+    {% endfor %}
+    <input type="submit" value="Save">
+</form>
+{% endblock %}

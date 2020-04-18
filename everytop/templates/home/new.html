@@ -6,7 +6,11 @@
 
 {% block content %}
 <form method="post">
-    {% for i in sites %}
+    {% for i in s %}
+    <input type="checkbox" id="{{ i }}" class="sc" name="{{ i }}" checked>
+    <label for="{{ i }}">{{ i }}</label></br>
+    {% endfor %}
+    {% for i in u %}
     <input type="checkbox" id="{{ i }}" name="{{ i }}">
     <label for="{{ i }}">{{ i }}</label></br>
     {% endfor %}

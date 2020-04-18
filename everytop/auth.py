@@ -3,8 +3,19 @@ from flask import Blueprint, flash, g, redirect, render_template, request, sessi
 from werkzeug.security import check_password_hash, generate_password_hash
 from everytop.db import get_db
 from everytop.get_top import websites
+import re
 
 bp = Blueprint('auth', __name__, url_prefix="/auth")
+
+
+regex = '^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$'
+
+
+def check(email):
+    if(re.search(regex, email)):
+        return True
+    else:
+        return False
 
 
 @bp.route('/register', methods=('GET', 'POST'))
@@ -12,6 +23,7 @@ def register():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
+        email = request.form['email']
         db = get_db()
         error = None
 
@@ -19,16 +31,24 @@ def register():
             error = 'Username is required.'
         elif not password:
             error = 'Password is required.'
+        elif not email:
+            error = 'Email is required.'
+        elif not check(email):
+            error = 'Invalid email.'
         elif db.execute(
             'SELECT id FROM user WHERE username = ?', (username,)
         ).fetchone() is not None:
             error = 'User {} is already registered.'.format(username)
+        elif db.execute(
+            'SELECT id FROM user WHERE email = ?', (email,)
+        ).fetchone() is not None:
+            error = 'Email {} is already registered.'.format(email)
 
         if error is None:
             db.execute(
-                'INSERT INTO user (username, password, sites) VALUES (?, ?, ?)',
-                (username, generate_password_hash(
-                    password), "0"*len(websites.keys()))
+                'INSERT INTO user (email, username, password, sites) VALUES (?, ?, ?, ?)',
+                (email, username, generate_password_hash(
+                    password), "1"*len(websites.keys()), )
             )
             db.commit()
             return redirect(url_for('auth.login'))
@@ -41,16 +61,16 @@ def register():
 @bp.route('/login', methods=('GET', 'POST'))
 def login():
     if request.method == 'POST':
-        username = request.form['username']
+        email = request.form['email']
         password = request.form['password']
         db = get_db()
         error = None
         user = db.execute(
-            'SELECT * FROM user WHERE username = ?', (username,)
+            'SELECT * FROM user WHERE email = ?', (email,)
         ).fetchone()
 
         if user is None:
-            error = 'Incorrect username.'
+            error = 'Incorrect email.'
         elif not check_password_hash(user['password'], password):
             error = 'Incorrect password.'
 
